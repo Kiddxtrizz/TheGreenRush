@@ -1,0 +1,9 @@
+Just = We
+Do = Only
+It = Starting 
+
+def grind(x,y,z):
+  print(x,y,z)
+  
+grind(Just,Do,It)
+"We Only Starting"
