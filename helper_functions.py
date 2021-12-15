@@ -85,3 +85,95 @@ def get_endpoints(url):
     ep = [endpoints[-9:].strip() for endpoints in api_endpoints]
     
     return ep
+
+
+#modules needed for function
+import pandas as pd
+from sodapy import Socrata
+
+
+def get_dataset_name(x):
+    
+    """
+    Create a function to pull 
+    in the name of the dataset
+    for the corresponding api endpoint 
+    """
+    
+    #formatting for the final table
+    #want to display the full name 
+    #of the dataset
+    pd.options.display.max_colwidth = 200
+    
+    #setup a basic client
+    client = Socrata("opendata.mass-cannabis-control.com", None)
+    
+    # list comprehension to capture relevant metadata (i.e. Name)
+    dataset_name = [client.get_metadata(y)['name'] for y in x]
+    
+    # combine the api-endpoints
+    # with the name of the assoc.
+    # dataset 
+    data = list(zip(x, dataset_name))
+    
+    #store final result into dataframe
+    api_table = pd.DataFrame(data, columns=['api_endpoints', 'Name']).drop_duplicates().reset_index(drop=True)
+
+    return api_table
+
+
+# function to select dataset 
+import time
+import pandas as pd
+from sodapy import Socrata 
+
+def choose_dataset(x, limit):
+    """
+    Create a function to take
+    in an api endpoint and 
+    output the results
+    """
+    
+    #setup a basic client
+    client = Socrata("opendata.mass-cannabis-control.com", None)
+    
+    # get columns
+    cols = x.columns
+    
+    # store api keys in a list
+    list_of_endpts = x[cols[0]].to_list()
+
+    # store user input 
+    user_input = input("Which dataset are you interested in viewing?\nPlease choose an index (i.e. row number) from the table above: ")
+    
+    time.sleep(2)
+    
+    limit = 2000
+    
+    #transform string
+    user_input = int(user_input) 
+    
+    # endpoint selection
+    submit = list_of_endpts[user_input]
+    
+    # Pull data via api enpoint 
+    results = client.get(f"{submit}", limit=limit)
+    
+    # Convert to pandas DataFrame
+    results_df = pd.DataFrame.from_records(results)
+    
+    return results_df
+
+# Converters
+import pandas as pd
+
+
+def convert_to_csv(x):
+    
+    # store user input 
+    user_input = input("What would you like to name your file?:  ")
+    
+    # convert dataframe to csv
+    x.to_csv(f"{user_input}"+".csv")
+    
+    
