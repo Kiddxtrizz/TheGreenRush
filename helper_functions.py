@@ -154,13 +154,22 @@ def choose_dataset(x, limit):
     user_input = int(user_input) 
     
     # endpoint selection
-    submit = list_of_endpts[user_input]
+    try:
+        submit = list_of_endpts[user_input]
+    except (KeyError, IndexError):
+        print('\n\nYou did not choose a number listed in the table above; Try again...\n\n')
+        
+        time.sleep(1)
+        
+        user_input = input("Which dataset are you interested in viewing?\nPlease choose an index (i.e. row number) from the table above: ")
+        submit = list_of_endpts[user_input]
+    else:
     
-    # Pull data via api enpoint 
-    results = client.get(f"{submit}", limit=limit)
-    
-    # Convert to pandas DataFrame
-    results_df = pd.DataFrame.from_records(results)
+        # Pull data via api enpoint 
+        results = client.get(f"{submit}", limit=limit)
+
+        # Convert to pandas DataFrame
+        results_df = pd.DataFrame.from_records(results)
     
     return results_df
 
