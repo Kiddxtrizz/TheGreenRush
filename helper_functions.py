@@ -12,7 +12,7 @@ def get_endpoints(url):
 
     prefix = url #store url 
     response = requests.get(prefix)
-    time.sleep(1)
+    time.sleep(10)
     
     """
     Use bs4 to build a grapg to loop 
@@ -74,7 +74,7 @@ def get_endpoints(url):
                 #     api_endpoints.append(api.get('href'))
 
         count += 1
-        time.sleep(1)
+        time.sleep(8)
     
     """
     Parse the links 
