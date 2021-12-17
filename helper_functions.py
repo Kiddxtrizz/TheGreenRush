@@ -153,13 +153,7 @@ def choose_dataset(x, limit):
     in an api endpoint and 
     output the results
     """
-    
-    # Store variables for auth.
-    API_KEY = API_KEY
-    USERNAME = USERNAME
-    PASSWORD = PASSWORD
-    
-    
+
     #setup a basic client
     client = Socrata("opendata.mass-cannabis-control.com", None)
     
