@@ -80,8 +80,9 @@ def get_endpoints(url):
            print ("Timeout Error:",errt)
        except requests.exceptions.RequestException as err:
            print ("OOps: Something Else",err)
-           content = webpage.content
-           apis = BeautifulSoup(content, "html.parser")
+        
+      content = webpage.content
+      apis = BeautifulSoup(content, "html.parser")
 
 
         for api in apis.find_all('a'):
