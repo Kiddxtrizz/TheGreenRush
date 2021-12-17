@@ -1,3 +1,10 @@
+# Data wrangling and manipulation
+import pandas as pd
+import numpy as np
+
+# API 
+from sodapy import Socrata
+
 # import requests module 
 import requests
 import re
@@ -11,9 +18,10 @@ def get_endpoints(url):
     # Check for status code 200... 
 
     prefix = url #store url 
+    
     try:
-         response = requests.get(prefix)
-         response.raise_for_status()
+        response = requests.get(prefix)
+        response.raise_for_status()
     except requests.exceptions.HTTPError as errh:
         print ("Http Error:",errh)
     except requests.exceptions.ConnectionError as errc:
@@ -22,7 +30,8 @@ def get_endpoints(url):
         print ("Timeout Error:",errt)
     except requests.exceptions.RequestException as err:
         print ("OOps: Something Else",err)
-    time.sleep(10)
+        
+    time.sleep(5)
     
     """
     Use bs4 to build a grapg to loop 
@@ -68,21 +77,19 @@ def get_endpoints(url):
     
     while count < len(set(pages)):
     
-    
         try:
             webpage = requests.get(prefix[:-7]+page_sort[count])
-            webpage.raise_for_status()
-       except requests.exceptions.HTTPError as errh:
-           print ("Http Error:",errh)
-       except requests.exceptions.ConnectionError as errc:
-           print ("Error Connecting:",errc)
-       except requests.exceptions.Timeout as errt:
-           print ("Timeout Error:",errt)
-       except requests.exceptions.RequestException as err:
-           print ("OOps: Something Else",err)
-        
-      content = webpage.content
-      apis = BeautifulSoup(content, "html.parser")
+        except requests.exceptions.HTTPError as errh:
+            print ("Http Error:",errh)
+        except requests.exceptions.ConnectionError as errc:
+            print ("Error Connecting:",errc)
+        except requests.exceptions.Timeout as errt:
+            print ("Timeout Error:",errt)
+        except requests.exceptions.RequestException as err:
+            print ("OOps: Something Else",err)
+            
+        content = webpage.content
+        apis = BeautifulSoup(content, "html.parser")
 
 
         for api in apis.find_all('a'):
@@ -108,11 +115,6 @@ def get_endpoints(url):
     return ep
 
 
-#modules needed for function
-import pandas as pd
-from sodapy import Socrata
-
-
 def get_dataset_name(x):
     
     """
@@ -127,6 +129,7 @@ def get_dataset_name(x):
     pd.options.display.max_colwidth = 200
     
     #setup a basic client
+    # authenticated client (needed for non-public datasets):
     client = Socrata("opendata.mass-cannabis-control.com", None)
     
     # list comprehension to capture relevant metadata (i.e. Name)
@@ -143,10 +146,6 @@ def get_dataset_name(x):
     return api_table
 
 
-# function to select dataset 
-import time
-import pandas as pd
-from sodapy import Socrata 
 
 def choose_dataset(x, limit):
     """
@@ -154,6 +153,12 @@ def choose_dataset(x, limit):
     in an api endpoint and 
     output the results
     """
+    
+    # Store variables for auth.
+    API_KEY = API_KEY
+    USERNAME = USERNAME
+    PASSWORD = PASSWORD
+    
     
     #setup a basic client
     client = Socrata("opendata.mass-cannabis-control.com", None)
@@ -179,23 +184,31 @@ def choose_dataset(x, limit):
         submit = list_of_endpts[user_input]
     except (KeyError, IndexError):
         print('\n\nYou did not choose a number listed in the table above; Try again...\n\n')
-        
-        time.sleep(1)
-        
-        user_input = input("Which dataset are you interested in viewing?\nPlease choose an index (i.e. row number) from the table above: ")
-        submit = list_of_endpts[user_input]
-    else:
-    
-        # Pull data via api enpoint 
-        results = client.get(f"{submit}", limit=limit)
 
-        # Convert to pandas DataFrame
-        results_df = pd.DataFrame.from_records(results)
-    
-    return results_df
+    # Pull data via api enpoint 
+    results = client.get(f"{submit}", limit=limit)
 
-# Converters
-import pandas as pd
+    # Convert to pandas DataFrame
+    results_df = pd.DataFrame.from_records(results)
+    
+    index_ = 0
+    
+    while index_ < len(df):
+
+        try:
+            #check if a column is geocoded:
+            if re.match(r"(geo[^i]|[\w]+geom)", df.iloc[:, index_].name) != None:
+                col_drop_nm = df.iloc[:, index_].name
+                true_res = pd.json_normalize(df.iloc[:, index_])
+                df = df.drop(col_drop_nm, axis=1)
+                df[['type', 'coordinates']] = true_res
+        except IndexError:
+            break
+    
+        index_ += 1
+        
+    # return final output 
+    return df
 
 
 def convert_to_csv(x):
