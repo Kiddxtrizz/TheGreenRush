@@ -11,7 +11,17 @@ def get_endpoints(url):
     # Check for status code 200... 
 
     prefix = url #store url 
-    response = requests.get(prefix)
+    try:
+         response = requests.get(prefix)
+         response.raise_for_status()
+    except requests.exceptions.HTTPError as errh:
+        print ("Http Error:",errh)
+    except requests.exceptions.ConnectionError as errc:
+        print ("Error Connecting:",errc)
+    except requests.exceptions.Timeout as errt:
+        print ("Timeout Error:",errt)
+    except requests.exceptions.RequestException as err:
+        print ("OOps: Something Else",err)
     time.sleep(10)
     
     """
@@ -59,9 +69,19 @@ def get_endpoints(url):
     while count < len(set(pages)):
     
     
-        webpage = requests.get(prefix[:-7]+page_sort[count])
-        content = webpage.content
-        apis = BeautifulSoup(content, "html.parser")
+        try:
+            webpage = requests.get(prefix[:-7]+page_sort[count])
+            webpage.raise_for_status()
+       except requests.exceptions.HTTPError as errh:
+           print ("Http Error:",errh)
+       except requests.exceptions.ConnectionError as errc:
+           print ("Error Connecting:",errc)
+       except requests.exceptions.Timeout as errt:
+           print ("Timeout Error:",errt)
+       except requests.exceptions.RequestException as err:
+           print ("OOps: Something Else",err)
+           content = webpage.content
+           apis = BeautifulSoup(content, "html.parser")
 
 
         for api in apis.find_all('a'):
@@ -170,22 +190,6 @@ def choose_dataset(x, limit):
 
         # Convert to pandas DataFrame
         results_df = pd.DataFrame.from_records(results)
-         
-      # add a pre-processing step
-    index_ = 0
-
-    while index_ < len(results_df):
-         try:
-            #check if a column is geocoded
-            if re.match(r"(geo[^i]|[\w]+geom)", results_df.iloc[:, index_].name) != None:
-               col_drop_nm = results_df.iloc[:, index_].name
-               true_res = pd.json_normalize(results_df.iloc[:, index_])
-               results_df = results_df.drop(col_drop_nm, axis=1)
-         except IndexError:
-            break
-         index_ += 1
-    
-    results_df[['type', 'coordinates']] = true_res
     
     return results_df
 
