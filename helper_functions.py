@@ -184,22 +184,6 @@ def choose_dataset(x, limit):
 
     # Convert to pandas DataFrame
     results_df = pd.DataFrame.from_records(results)
-    
-    index_ = 0
-    
-    while index_ < len(df):
-
-        try:
-            #check if a column is geocoded:
-            if re.match(r"(geo[^i]|[\w]+geom)", df.iloc[:, index_].name) != None:
-                col_drop_nm = df.iloc[:, index_].name
-                true_res = pd.json_normalize(df.iloc[:, index_])
-                df = df.drop(col_drop_nm, axis=1)
-                df[['type', 'coordinates']] = true_res
-        except IndexError:
-            break
-    
-        index_ += 1
         
     # return final output 
     return df
